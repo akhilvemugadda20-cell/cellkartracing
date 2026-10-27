@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cell Kart Racers</title>
+<style>
+:root{--bg:#ffe9f3;--bg2:#d9f3ff;--ink:#1d2340;--card:#ffffff;--pri:#ff5d8f;--acc:#2bb3ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1b3a;--bg2:#12304a;--ink:#f4f1ff;--card:#2a2a55}}
+:root[data-theme="dark"]{--bg:#1b1b3a;--bg2:#12304a;--ink:#f4f1ff;--card:#2a2a55}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;padding:10px}
+#app{position:relative;max-width:960px;margin:0 auto;aspect-ratio:960/560;border-radius:18px;overflow:hidden;box-shadow:0 8px 30px #0006;background:#000;font-size:clamp(8px,1.45vw,14px)}
+#c{width:100%;height:100%;display:block}
+.hide{display:none!important}
+.scr{position:absolute;inset:0;overflow:auto;padding:2.5% 4%;background:linear-gradient(135deg,var(--bg),var(--bg2));color:var(--ink);text-align:center}
+h1{font-size:4em;margin:.3em 0 .1em;letter-spacing:-.02em}h2{font-size:2.2em;margin:.2em 0}
+button{font:inherit;font-weight:800;border:3px solid var(--ink);background:var(--pri);color:#fff;border-radius:14px;padding:.5em 1.2em;cursor:pointer;box-shadow:0 4px 0 var(--ink)}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.how{max-width:44em;margin:1.2em auto;background:var(--card);border-radius:14px;padding:1em;line-height:1.6;text-align:left}
+kbd{background:var(--bg2);border:2px solid var(--ink);border-radius:6px;padding:0 .4em;font-weight:800}
+#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.7em;margin:.6em 0}
+.card{background:var(--card);border:3px solid transparent;border-radius:14px;padding:.5em;cursor:pointer;display:flex;flex-direction:column;gap:.15em;align-items:center}
+.card.on{border-color:var(--pri);transform:scale(1.03)}.card canvas{width:5em;height:5em}.card i{opacity:.7}.card small{opacity:.85}.card span{font-weight:700}
+#trs{display:flex;gap:.6em;justify-content:center;flex-wrap:wrap;margin:.6em 0}#trs button{background:var(--card);color:var(--ink)}#trs button.on{background:var(--acc);color:#fff}
+#hud div{position:absolute;color:#fff;font-weight:900;text-shadow:0 2px 0 #1d2340,0 0 8px #1d2340;pointer-events:none}
+#pos{left:2%;top:2%;font-size:3.4em}#lap{right:2%;top:2%;font-size:2em}#spd{left:2%;bottom:3%;font-size:2em}#abl{right:2%;bottom:3%;font-size:1.3em;text-align:right}#inf{left:2%;top:15%;font-size:1.1em}
+#quiz{position:absolute;left:50%;transform:translateX(-50%);bottom:2%;width:62%;background:var(--card);color:var(--ink);border:3px solid var(--ink);border-radius:14px;padding:.6em .8em;text-align:center;font-size:1.05em;opacity:.97}
+.qq{font-weight:800;margin:.3em 0}.qo{display:grid;grid-template-columns:1fr 1fr;gap:.4em}.qo button{background:var(--acc);padding:.35em .5em;font-size:.95em}
+#toast{position:absolute;left:50%;top:14%;transform:translateX(-50%);max-width:70%;padding:.6em 1em;border-radius:12px;border:3px solid var(--ink);font-weight:800;text-align:center;color:#fff}
+#toast.ok{background:#1faa59}#toast.bad{background:#e0405e}
+#big{position:absolute;inset:0;display:grid;place-items:center;font-size:8em;font-weight:900;color:#fff;text-shadow:0 5px 0 #1d2340,0 0 20px #1d2340;pointer-events:none}
+#res ol{list-style:none;padding:0;max-width:30em;margin:.6em auto;text-align:left}#res li{background:var(--card);margin:.3em 0;padding:.4em .8em;border-radius:10px;font-weight:700}#res li.me{outline:3px solid var(--pri)}
+#res p{max-width:44em;margin:.4em auto}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<div id="app">
+<canvas id="c" width="960" height="560"></canvas>
+<div id="hud" class="hide"><div id="pos"></div><div id="lap"></div><div id="spd"></div><div id="abl"></div><div id="inf"></div></div>
+<div id="quiz" class="hide"></div><div id="toast" class="hide"></div><div id="big"></div>
+<section id="title" class="scr"><h1>🧫 Cell Kart Racers</h1><p>Race as a cell organelle. Grab power-up boxes, then answer a quick biology question to switch them on.</p><button id="go1">Start engines</button>
+<div class="how"><b>Controls</b><br><kbd>↑</kbd>/<kbd>W</kbd> accelerate · <kbd>↓</kbd>/<kbd>S</kbd> brake · <kbd>←</kbd><kbd>→</kbd>/<kbd>A</kbd><kbd>D</kbd> steer<br><kbd>Space</kbd> drift while turning (release for a mini-boost) · <kbd>Q</kbd>/<kbd>Shift</kbd> organelle special<br>Power-up box → question pops up while you keep racing → press <kbd>1</kbd>–<kbd>4</kbd> or click. Right = it activates. Wrong = it’s lost.</div></section>
+<section id="sel" class="scr hide"><h2>Pick your organelle and track</h2><div id="grid"></div><div id="trs"></div><button id="go2">Race! 🏁</button></section>
+<section id="res" class="scr hide"></section>
+</div>
+<script>
+const PI=Math.PI,TAU=PI*2,W=960,H=560,LAPS=3,N=320;
+const $=s=>document.querySelector(s),cv=$("#c"),g=cv.getContext("2d");
+const R=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.random()*a.length|0];
+const adf=(a,b)=>{let d=b-a;while(d>PI)d-=TAU;while(d<-PI)d+=TAU;return d};
+let AC;function snd(f,d=.12,t="square",v=.05,f2){try{AC=AC||new AudioContext();const o=AC.createOscillator(),x=AC.createGain(),n=AC.currentTime;o.type=t;o.frequency.setValueAtTime(f,n);if(f2)o.frequency.exponentialRampToValueAtTime(f2,n+d);x.gain.setValueAtTime(v,n);x.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(x);x.connect(AC.destination);o.start();o.stop(n+d)}catch(e){}}
+const CH=[
+{n:"Mitochondria",c:"#ff9a3c",s:[1.1,.9,.9],ab:"ATP Burst",ad:"Big speed surge, just like ATP energy.",fn:"The powerhouse: turns glucose and oxygen into ATP the cell can use.",a:{b:2.5}},
+{n:"Nucleus",c:"#8c7cff",s:[.95,.9,1.1],ab:"DNA Guard",ad:"Shield plus a small boost.",fn:"The control center: stores DNA and directs gene expression.",a:{sh:4,b:1}},
+{n:"Ribosome",c:"#ff5d8f",s:[.95,1.2,1],ab:"Protein Rush",ad:"Quick, repeatable burst.",fn:"Reads mRNA and links amino acids into proteins.",a:{b:1.5,cd:9}},
+{n:"Chloroplast",c:"#3ccf6a",tag:"Plant only",s:[1,1,1.05],ab:"Solar Boost",ad:"Long solar-powered boost.",fn:"Uses chlorophyll to turn light, water and CO₂ into sugar and oxygen.",a:{b:3}},
+{n:"Golgi Apparatus",c:"#ffd23f",s:[1,1,1],ab:"Special Delivery",ad:"Packages a free power-up.",fn:"Modifies, sorts and ships proteins in vesicles.",a:{item:1}},
+{n:"Lysosome",c:"#b46bff",tag:"Mostly animal",s:[.95,1,1],ab:"Cleanup Crew",ad:"Clears nearby hazards, stuns close rivals.",fn:"Digests waste and worn-out parts with enzymes.",a:{clean:1}},
+{n:"Cell Membrane",c:"#27c9c0",s:[.95,.95,1.1],ab:"Selective Barrier",ad:"Long shield that blocks attacks.",fn:"A flexible barrier controlling what enters and leaves the cell.",a:{sh:6}},
+{n:"Endoplasmic Reticulum",c:"#ff8fa3",s:[1,1.05,1],ab:"Smooth Operator",ad:"No off-track slowdown, plus a mini boost.",fn:"Folded membrane network: rough ER helps make proteins, smooth ER makes lipids.",a:{grip:5,b:1}}];
+const IT={atp:["⚡","Energy Boost"],shield:["🛡️","Membrane Shield"],protein:["🧬","Protein Boost"],clean:["💥","Cleanup Attack"],photo:["☀️","Photosynthesis Boost"]};
+const QB=[
+["atp","Which organelle produces most of the ATP in a typical eukaryotic cell?","Mitochondria","Golgi apparatus","Lysosome","Nucleus","Mitochondria run cellular respiration, turning food energy into ATP."],
+["atp","The folded inner membrane of a mitochondrion is called…","Cristae","Thylakoids","Cisternae","Grana","Cristae add surface area for ATP-making enzymes."],
+["atp","Which cell would need the MOST mitochondria?","Heart muscle cell","Mature red blood cell","Dead wood cell","Dead skin cell","Active cells need lots of ATP. Mature red blood cells have none."],
+["shield","Which structure controls what enters and leaves the cell?","Cell membrane","Nucleolus","Ribosome","Vacuole","The membrane is selectively permeable."],
+["shield","Which structure is in plant cells but NOT animal cells and gives support?","Cell wall","Cell membrane","Ribosome","Mitochondrion","Plant cells have a rigid cellulose cell wall outside the membrane."],
+["shield","Which organelle stores DNA and directs gene expression?","Nucleus","Lysosome","Chloroplast","Golgi apparatus","DNA stays protected in the nucleus."],
+["protein","Which organelle is responsible for protein synthesis?","Ribosome","Lysosome","Vacuole","Centriole","Ribosomes read mRNA and build proteins."],
+["protein","Rough ER looks rough because it is studded with…","Ribosomes","Mitochondria","Lysosomes","Chloroplasts","Ribosomes on rough ER make proteins for export or membranes."],
+["protein","Which organelle modifies, sorts and packages proteins into vesicles?","Golgi apparatus","Nucleolus","Peroxisome","Chloroplast","The Golgi is the cell’s post office."],
+["clean","Which organelle digests waste and worn-out cell parts?","Lysosome","Ribosome","Nucleus","Chloroplast","Lysosomes hold digestive enzymes."],
+["clean","Lysosomes break down materials using…","Digestive enzymes","Chlorophyll","DNA","Cristae","Enzymes in the acidic lysosome break big molecules apart."],
+["clean","Which is NOT found in a typical animal cell?","Cell wall","Nucleus","Mitochondrion","Lysosome","Cell walls and chloroplasts are plant-cell features."],
+["photo","Which organelle converts light energy into chemical energy in plant cells?","Chloroplast","Mitochondrion","Vacuole","Nucleus","Photosynthesis in chloroplasts makes sugar."],
+["photo","Which green pigment captures light in chloroplasts?","Chlorophyll","Melanin","Hemoglobin","Keratin","Chlorophyll absorbs red and blue light."],
+["photo","Which organelle stores water and keeps plant cells firm?","Central vacuole","Lysosome","Centriole","Nucleolus","A full central vacuole pushes on the cell wall (turgor)."]];
+const TR=[
+{n:"Rough ER Run",d:"Winding ER folds and ribosome zones",rx:1500,ry:950,A:.16,k:3,p:0,B:.07,m:5,q:1,w:170,bg:"#cfeeff",rd:"#8a7bff",ed:"#fff",hz:"misfolded protein",hc:"#8b5a2b",dc:0},
+{n:"Mitochondria Energy Tunnel",d:"Glowing cristae and ATP sparks",rx:1400,ry:1000,A:.14,k:2,p:1,B:.1,m:4,q:2,w:170,bg:"#ffb877",rd:"#8e3b2a",ed:"#ffe27a",hz:"free radical",hc:"#7a2cd0",dc:1},
+{n:"Chloroplast Garden",d:"Thylakoid stacks in the sunshine",rx:1550,ry:900,A:.18,k:4,p:2,B:.05,m:6,q:0,w:170,bg:"#c4f3a2",rd:"#fff0b3",ed:"#2f9d57",hz:"spilled stroma",hc:"#1f7a3c",dc:2}];
+function org(g,ch,r,dir=0){const id=CH.indexOf(ch);g.save();g.lineWidth=Math.max(2,r/9);g.strokeStyle="#1d2340";g.fillStyle=ch.c;g.beginPath();id==0||id==3?g.ellipse(0,0,r*1.2,r*.9,0,0,TAU):g.arc(0,0,r,0,TAU);g.fill();g.stroke();
+g.strokeStyle="rgba(255,255,255,.8)";g.fillStyle="rgba(255,255,255,.55)";
+const L=p=>{g.beginPath();p.forEach((q,i)=>g[i?"lineTo":"moveTo"](q[0]*r,q[1]*r));g.stroke()};
+const C=(x,y,s,f)=>{g.beginPath();g.arc(x*r,y*r,s*r,0,TAU);f?g.fill():g.stroke()};
+if(id==0)L([[-.9,.35],[-.6,.7],[-.3,.35],[0,.7],[.3,.35],[.6,.7],[.9,.35]]);
+if(id==1)C(.3,.45,.28,1);
+if(id==2){g.fillStyle=ch.c;g.strokeStyle="#1d2340";C(.6,-.8,.42,1);C(.6,-.8,.42)}
+if(id==3){g.fillStyle="#1f8a43";[-.5,0,.5].forEach(x=>[0,1,2].forEach(y=>{g.beginPath();g.ellipse(x*r,(.35+y*.17)*r,.2*r,.07*r,0,0,TAU);g.fill()}))}
+if(id==4)[.4,.58,.76].forEach(y=>{g.beginPath();g.moveTo(-.6*r,y*r);g.quadraticCurveTo(0,(y-.25)*r,.6*r,y*r);g.stroke()});
+if(id==5){g.fillStyle="rgba(70,10,130,.6)";[[-.5,.5],[.5,.45],[0,.72]].forEach(p=>C(p[0],p[1],.14,1))}
+if(id==6){g.fillStyle=ch.c;g.strokeStyle="#1d2340";for(let a=0;a<12;a++){C(Math.cos(a/12*TAU)*1.1,Math.sin(a/12*TAU)*1.1,.13,1);C(Math.cos(a/12*TAU)*1.1,Math.sin(a/12*TAU)*1.1,.13)}}
+if(id==7){L([[-.7,.4],[-.35,.6],[0,.4],[.35,.6],[.7,.4]]);L([[-.6,.7],[-.3,.85],[0,.7],[.3,.85],[.6,.7]])}
+g.strokeStyle="#1d2340";g.fillStyle="#fff";[-1,1].forEach(s=>{C(s*.36,-.28,.22,1);C(s*.36,-.28,.22);g.fillStyle="#1d2340";C(s*.36+Math.cos(dir)*.08,-.28+Math.sin(dir)*.08,.1,1);g.fillStyle="#fff"});
+g.beginPath();g.arc(0,.05,r*.28,.15*PI,.85*PI);g.stroke();g.restore()}
+const keys={};let S="title",T,P,K,B,Hz,FX,me,Q,cam={x:0,y:0},cdT,raceT,lastN,st,miss,selC=0,selT=0,tm,tt=0;
+function gen(t){P=[];for(let i=0;i<N;i++){const a=i/N*TAU,r=1+t.A*Math.sin(t.k*a+t.p)+t.B*Math.sin(t.m*a+t.q);P.push({x:Math.cos(a)*t.rx*r,y:Math.sin(a)*t.ry*r})}
+P.forEach((p,i)=>{const a=P[(i+N-1)%N],b=P[(i+1)%N],dx=b.x-a.x,dy=b.y-a.y,l=Math.hypot(dx,dy);p.nx=-dy/l;p.ny=dx/l;p.a=Math.atan2(dy,dx)});
+t.path=new Path2D();P.forEach((p,i)=>i?t.path.lineTo(p.x,p.y):t.path.moveTo(p.x,p.y));t.path.closePath();
+B=[];for(let j=0;j<10;j++)[-55,0,55].forEach(o=>{const p=P[Math.floor((j+.5)*N/10)];B.push({x:p.x+p.nx*o,y:p.y+p.ny*o,t:0})});
+Hz=[];for(let j=0;j<26;j++){const p=P[20+(Math.random()*(N-40)|0)],o=R(-65,65);Hz.push({x:p.x+p.nx*o,y:p.y+p.ny*o,on:true})}
+t.dec=[];for(let j=0;j<150;j++){const p=P[Math.random()*N|0],d=(t.w/2+R(70,330))*(Math.random()<.5?-1:1);t.dec.push({x:p.x+p.nx*d,y:p.y+p.ny*d,r:R(8,20)})}T=t}
+function mk(ci,i,ai){const idx=N-2-2*(i>>1),p=P[idx],s=i%2?-1:1;return{ch:CH[ci],ai,x:p.x+p.nx*38*s,y:p.y+p.ny*38*s,a:p.a,v:0,idx,lap:0,boost:0,shield:0,spin:0,grip:0,sa:0,drift:0,cd:6,item:null,itemT:0,fin:0,ft:0,prog:idx,skill:ai?R(.9,.99):1,off:R(-45,45)}}
+function start(){gen(TR[selT]);const rest=[...CH.keys()].filter(i=>i!=selC).sort(()=>Math.random()-.5);K=[];for(let i=0;i<6;i++)K.push(i==4?mk(selC,i,0):mk(rest.pop(),i,1));me=K[4];FX=[];Q=null;st={n:0,c:0,u:0};miss=[];raceT=0;cdT=3.9;lastN=9;cam={x:me.x,y:me.y};show(null);$("#hud").classList.remove("hide");$("#quiz").classList.add("hide");S="count"}
+function show(id){document.querySelectorAll(".scr").forEach(e=>e.classList.add("hide"));if(id)$("#"+id).classList.remove("hide")}
+function big(t,ms){$("#big").textContent=t;clearTimeout(tm);if(ms)tm=setTimeout(()=>$("#big").textContent="",ms)}
+function toast(m,c){const e=$("#toast");e.className=c;e.innerHTML=m;clearTimeout(tt);tt=setTimeout(()=>e.classList.add("hide"),c=="bad"?6000:3500)}
+function take(k){const t=pick(Object.keys(IT));k.item=t;if(k===me){ask(t);snd(880,.1,"triangle",.07,1320)}else k.itemT=R(1,4)}
+function ask(t){const p=QB.filter(q=>q[0]==t),q=pick(p),o=q.slice(2,6).map((x,i)=>({t:x,c:!i})).sort(()=>Math.random()-.5);Q={t,o,right:q[2],ex:q[6],T:14};
+$("#quiz").innerHTML=`<b>${IT[t][0]} ${IT[t][1]}</b>: answer to activate!<div class="qq">${q[1]}</div><div class="qo">${o.map((x,i)=>`<button data-i="${i}">${i+1}. ${x.t}</button>`).join("")}</div>`;$("#quiz").classList.remove("hide")}
+function ans(i){if(!Q||!Q.o[i])return;const ok=Q.o[i].c;st.n++;if(ok){st.c++;st.u++;use(me,Q.t);snd(660,.25,"triangle",.08,1320);toast("✔ Correct! "+Q.ex,"ok")}else{miss.push({r:Q.right,e:Q.ex});snd(150,.35,"sawtooth",.08,70);toast(`✘ Power-up lost. Answer: ${Q.right}. ${Q.ex}`,"bad")}
+Q=null;me.item=null;$("#quiz").classList.add("hide")}
+$("#quiz").addEventListener("click",e=>{const b=e.target.closest("button");if(b){ans(+b.dataset.i);b.blur()}});
+function hit(o){if(o.shield>0){o.shield=0;snd(300,.1)}else{o.spin=1.2;o.v*=.2}}
+function use(k,t){if(t=="atp")k.boost=Math.max(k.boost,2.2);if(t=="photo")k.boost=Math.max(k.boost,3.2);if(t=="protein")k.boost=Math.max(k.boost,1.6);if(t=="shield")k.shield=5;
+if(t=="clean"){let tg=null,bd=800;K.forEach(o=>{const d=Math.hypot(o.x-k.x,o.y-k.y);if(o!==k&&d<bd){bd=d;tg=o}});if(tg){hit(tg);FX.push({x:k.x,y:k.y,x2:tg.x,y2:tg.y,t:.4})}}}
+function abil(k){const a=k.ch.a;if(k.cd>0||(a.item&&k.item))return;k.cd=a.cd||14;if(a.b)k.boost=Math.max(k.boost,a.b);if(a.sh)k.shield=Math.max(k.shield,a.sh);if(a.grip)k.grip=a.grip;
+if(a.clean){Hz.forEach(h=>{if(h.on&&Math.hypot(h.x-k.x,h.y-k.y)<320)h.on=false});K.forEach(o=>{if(o!==k&&Math.hypot(o.x-k.x,o.y-k.y)<260)hit(o)});FX.push({x:k.x,y:k.y,r:260,t:.4})}
+if(a.item)take(k);if(k===me)snd(300,.3,"square",.06,900)}
+const order=()=>[...K].sort((a,b)=>(b.fin?1e9-b.ft:b.prog)-(a.fin?1e9-a.ft:a.prog));
+function step(k,dt){const c=k.ch,p=P[k.idx];let up=0,dn=0,sx=0,dr=0;
+if(k.ai||k.fin){const q=P[(k.idx+6+(k.v/70|0))%N],d=adf(k.a,Math.atan2(q.y+q.ny*k.off-k.y,q.x+q.nx*k.off-k.x));sx=cl(d*2.5,-1,1);up=1;dn=Math.abs(d)>.7&&k.v>220?1:0;
+if(k.item&&(k.itemT-=dt)<=0){use(k,k.item);k.item=null}if(k.cd<=0&&Math.random()<.004)abil(k)}
+else{up=keys.arrowup||keys.w;dn=keys.arrowdown||keys.s;sx=(keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0);dr=keys[" "]}
+let mv=335*c.s[0]*k.skill*(k.boost>0?1.45:1)*(k.spin>0?.25:1);if(k.ai&&!k.fin)mv*=cl(1+(me.prog-k.prog)*.0005,.93,1.1);
+if(Math.hypot(k.x-p.x,k.y-p.y)>T.w/2+12&&k.grip<=0)mv*=.5;
+if(up&&k.spin<=0)k.v+=(210*c.s[1]+(k.boost>0?420:0))*dt;if(dn)k.v-=520*dt;k.v-=(up?30:140)*dt;if(k.v>mv)k.v-=(k.v-mv)*Math.min(1,5*dt);k.v=Math.max(0,k.v);
+if(k.spin>0){k.spin-=dt;k.sa+=16*dt}else k.sa=0;
+const dd=dr&&sx&&k.v>170;if(k.spin<=0)k.a+=sx*2.4*c.s[2]*cl(k.v/150,0,1)*(dd?1.5:1)*dt;
+if(dd)k.drift+=dt;else{if(k.drift>.8){k.boost=Math.max(k.boost,k.drift>1.6?1.1:.6);if(k===me)snd(500,.2,"sawtooth",.05,900)}k.drift=0}
+["boost","shield","grip","cd"].forEach(f=>k[f]=Math.max(0,k[f]-dt));
+k.x+=Math.cos(k.a)*k.v*dt;k.y+=Math.sin(k.a)*k.v*dt;
+let b=k.idx,bd=1e18;for(let j=-10;j<=10;j++){const i=(k.idx+j+N)%N,d=(k.x-P[i].x)**2+(k.y-P[i].y)**2;if(d<bd){bd=d;b=i}}
+if(k.idx>N*.8&&b<N*.2)k.lap++;else if(k.idx<N*.2&&b>N*.8)k.lap--;k.idx=b;k.prog=k.lap*N+b;
+if(k.lap>LAPS&&!k.fin){k.fin=1;k.ft=raceT;if(k===me){snd(523,.5,"triangle",.1,1046);big("FINISH!",2500)}}}
+function update(dt){if(S=="count"){cdT-=dt;const n=Math.ceil(cdT-.9);if(n!=lastN){lastN=n;if(n>0){big(n);snd(440,.15)}else{big("GO!",900);snd(880,.4,"square",.08);S="race"}}}
+else{raceT+=dt;K.forEach(k=>step(k,dt));
+for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){const a=K[i],b=K[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d<34&&d>0){const o=(34-d)/2,nx=dx/d,ny=dy/d;a.x-=nx*o;a.y-=ny*o;b.x+=nx*o;b.y+=ny*o;a.v*=.98;b.v*=.98}}
+K.forEach(k=>{if(!k.item)B.forEach(b=>{if(b.t<=0&&Math.hypot(k.x-b.x,k.y-b.y)<36){b.t=6;take(k)}});
+Hz.forEach(h=>{if(h.on&&Math.hypot(k.x-h.x,k.y-h.y)<26){h.on=false;if(k.shield<=0){k.v*=.4;k.spin=.7;if(k===me)snd(120,.3,"sawtooth",.1)}}})});
+B.forEach(b=>b.t-=dt);FX.forEach(f=>f.t-=dt);FX=FX.filter(f=>f.t>0);
+if(Q&&(Q.T-=dt)<=0){toast("Time’s up! Power-up lost.","bad");Q=null;me.item=null;$("#quiz").classList.add("hide")}
+if(me.fin&&(K.every(k=>k.fin)||raceT>me.ft+10))return finish()}
+cam.x+=(me.x+Math.cos(me.a)*me.v*.3-cam.x)*Math.min(1,8*dt);cam.y+=(me.y+Math.sin(me.a)*me.v*.3-cam.y)*Math.min(1,8*dt);hud()}
+function hud(){const o=order(),r=o.indexOf(me)+1,sf=["th","st","nd","rd"][r<4?r:0];$("#pos").textContent=r+sf+" / 6";$("#lap").textContent="Lap "+cl(me.lap,1,LAPS)+"/"+LAPS;$("#spd").textContent=Math.round(me.v/3)+" km/h";
+$("#abl").innerHTML=`[Q] ${me.ch.ab}<br>${me.cd>0?Math.ceil(me.cd)+"s":"READY"}`;
+$("#inf").innerHTML=`${me.boost>0?"🔥 BOOST ":""}${me.shield>0?"🛡️ SHIELD ":""}${me.grip>0?"〰️ SMOOTH ":""}<br>${me.item?"🎁 "+IT[me.item][1]+" (answer!)":"Power-ups used: "+st.u}<br>Trivia ${st.c}/${st.n}`}
+function finish(){S="done";$("#hud").classList.add("hide");$("#quiz").classList.add("hide");$("#toast").classList.add("hide");big("");const o=order(),r=o.indexOf(me)+1;
+$("#res").innerHTML=`<h2>${r==1?"🏆 You won!":"🏁 You placed #"+r}</h2><ol>${o.map((k,i)=>`<li class="${k===me?"me":""}">${i+1}. ${k.ch.n}${k===me?" (you)":""}: ${k.fin?k.ft.toFixed(1)+"s":"did not finish"}</li>`).join("")}</ol>
+<p><b>Trivia: ${st.c} of ${st.n} correct.</b> ${miss.length?"Review: "+miss.slice(0,3).map(m=>m.r+": "+m.e).join(" · "):"Perfect cell knowledge!"}</p>
+<p><button id="again">Race again</button> <button id="chg">Change racer or track</button></p>`;show("res");
+$("#again").onclick=start;$("#chg").onclick=()=>show("sel")}
+function draw(){g.fillStyle=T?T.bg:"#cfeeff";g.fillRect(0,0,W,H);if(!T||!K)return;const t=performance.now()/1000;g.save();g.translate(W/2-cam.x,H/2-cam.y);
+T.dec.forEach(d=>{if(Math.abs(d.x-cam.x)>W/2+40||Math.abs(d.y-cam.y)>H/2+40)return;if(T.dc==0){g.fillStyle="#3b4fa8";g.beginPath();g.arc(d.x,d.y,d.r*.6,0,TAU);g.arc(d.x+d.r*.6,d.y-d.r*.6,d.r*.35,0,TAU);g.fill()}else if(T.dc==1){g.font=d.r*2+"px sans-serif";g.fillText("⚡",d.x,d.y)}else{g.fillStyle="#2f9d57";for(let y=0;y<3;y++){g.beginPath();g.ellipse(d.x,d.y-y*d.r*.4,d.r,d.r*.3,0,0,TAU);g.fill()}}});
+g.lineJoin="round";g.lineCap="round";g.strokeStyle=T.ed;g.lineWidth=T.w+26;g.stroke(T.path);g.strokeStyle=T.rd;g.lineWidth=T.w;g.stroke(T.path);g.setLineDash([30,40]);g.strokeStyle="rgba(255,255,255,.45)";g.lineWidth=4;g.stroke(T.path);g.setLineDash([]);
+g.save();g.translate(P[0].x,P[0].y);g.rotate(P[0].a);for(let i=0;i<8;i++)for(let j=0;j<2;j++){g.fillStyle=(i+j)%2?"#fff":"#111";g.fillRect(j*14-14,-T.w/2+i*T.w/8,14,T.w/8)}g.restore();
+Hz.forEach(h=>{if(!h.on)return;g.strokeStyle=g.fillStyle=T.hc;g.lineWidth=3;g.beginPath();g.arc(h.x,h.y,14,0,TAU);g.fill();for(let a=0;a<8;a++){g.beginPath();g.moveTo(h.x+Math.cos(a*PI/4)*12,h.y+Math.sin(a*PI/4)*12);g.lineTo(h.x+Math.cos(a*PI/4)*22,h.y+Math.sin(a*PI/4)*22);g.stroke()}});
+B.forEach(b=>{if(b.t>0)return;g.save();g.translate(b.x,b.y);g.rotate(t*2);g.fillStyle=`hsl(${t*200%360},90%,60%)`;g.strokeStyle="#1d2340";g.lineWidth=3;g.beginPath();g.roundRect(-14,-14,28,28,6);g.fill();g.stroke();g.rotate(-t*2);g.fillStyle="#fff";g.font="bold 20px sans-serif";g.textAlign="center";g.fillText("?",0,7);g.restore()});
+FX.forEach(f=>{g.strokeStyle="#b46bff";g.lineWidth=6;g.beginPath();if(f.r)g.arc(f.x,f.y,f.r*(1-f.t),0,TAU);else{g.moveTo(f.x,f.y);g.lineTo(f.x2,f.y2)}g.stroke()});
+[...K].sort((a,b)=>a.y-b.y).forEach(k=>{g.save();g.translate(k.x,k.y);g.fillStyle="rgba(0,0,0,.25)";g.beginPath();g.ellipse(0,8,26,14,0,0,TAU);g.fill();
+g.save();g.rotate(k.a);g.fillStyle="#222";[[-18,-19],[-18,12],[10,-19],[10,12]].forEach(w=>g.fillRect(w[0],w[1],12,7));
+if(k.boost>0){g.fillStyle="#ffb300";g.beginPath();g.moveTo(-22,-7);g.lineTo(-42-R(0,14),0);g.lineTo(-22,7);g.fill()}
+if(k.drift>.2){g.fillStyle=k.drift>1.6?"#ff8a00":k.drift>.8?"#3ad0ff":"#fff";[-14,14].forEach(y=>{g.beginPath();g.arc(-22-R(0,8),y,3,0,TAU);g.fill()})}
+g.fillStyle=k.ch.c;g.strokeStyle="#1d2340";g.lineWidth=3;g.beginPath();g.roundRect(-22,-13,44,26,8);g.fill();g.stroke();g.restore();
+g.rotate(k.sa);org(g,k.ch,19,k.a);g.rotate(-k.sa);
+if(k.shield>0){g.fillStyle="rgba(120,220,255,.28)";g.strokeStyle="rgba(120,220,255,.95)";g.lineWidth=4;g.beginPath();g.arc(0,0,34,0,TAU);g.fill();g.stroke()}
+if(k===me){g.fillStyle="#fff";g.strokeStyle="#1d2340";g.lineWidth=3;g.font="bold 14px sans-serif";g.textAlign="center";g.strokeText("YOU",0,-34);g.fillText("YOU",0,-34)}g.restore()});
+g.restore();
+g.save();g.translate(W-82,150);g.fillStyle="rgba(0,0,0,.3)";g.beginPath();g.roundRect(-70,-62,140,124,10);g.fill();g.scale(.04,.04);g.strokeStyle="rgba(255,255,255,.85)";g.lineWidth=90;g.stroke(T.path);K.forEach(k=>{g.fillStyle=k===me?"#fff":k.ch.c;g.beginPath();g.arc(k.x,k.y,k===me?150:110,0,TAU);g.fill()});g.restore()}
+let last=0;function loop(t){const dt=Math.min(.033,(t-last)/1000||0);last=t;if(S=="count"||S=="race")update(dt);draw();requestAnimationFrame(loop)}
+addEventListener("keydown",e=>{const k=e.key.toLowerCase();if((S=="race"||S=="count")&&["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))e.preventDefault();keys[k]=1;if(S=="race"){if(Q&&["1","2","3","4"].includes(k))ans(+k-1);if(k=="q"||k=="shift")abil(me)}});
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=0);
+const bar=v=>{const n=cl(Math.round((v-.8)*12),1,5);return"●".repeat(n)+"○".repeat(5-n)};
+CH.forEach((c,i)=>{const d=document.createElement("div");d.className="card"+(i?"":" on");d.innerHTML=`<canvas width="64" height="64"></canvas><b>${c.n}</b><i>${c.tag||"Animal + Plant"}</i><span>${c.ab}: ${c.ad}</span><small>${c.fn}</small><em>Speed ${bar(c.s[0])} Accel ${bar(c.s[1])} Handling ${bar(c.s[2])}</em>`;
+const x=d.querySelector("canvas").getContext("2d");x.translate(32,32);org(x,c,22);d.onclick=()=>{selC=i;document.querySelectorAll(".card").forEach(e=>e.classList.remove("on"));d.classList.add("on")};$("#grid").appendChild(d)});
+TR.forEach((t,i)=>{const b=document.createElement("button");b.className=i?"":"on";b.innerHTML=`${t.n}<br><small>${t.d}</small>`;b.onclick=()=>{selT=i;document.querySelectorAll("#trs button").forEach(e=>e.classList.remove("on"));b.classList.add("on")};$("#trs").appendChild(b)});
+$("#go1").onclick=()=>{snd(600,.1);show("sel")};$("#go2").onclick=start;
+requestAnimationFrame(loop);
+</script></body></html>
